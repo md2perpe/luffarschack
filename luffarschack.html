@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luffarschack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --desk: #e3e7ea;
+    --desk-shadow: #c7cdd2;
+    --paper: #fffdf8;
+    --grid: #cfe0ef;
+    --grid-bold: #93b8d9;
+    --ink-o: #1d3557;
+    --ink-x: #9e2a2b;
+    --margin-red: #d98a8c;
+    --highlight: #ffd166;
+    --text: #2b2b28;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 30% 0%, #eef1f3 0%, var(--desk) 55%),
+      var(--desk);
+    font-family:'Patrick Hand', sans-serif;
+    color: var(--text);
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:28px 14px 60px;
+  }
+  .desk-scene{
+    width:100%;
+    max-width:1100px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .paper{
+    position:relative;
+    width:100%;
+    background:var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06), 0 18px 34px -18px rgba(0,0,0,0.35), 0 40px 60px -40px rgba(0,0,0,0.25);
+    transform: rotate(-0.4deg);
+    padding: 30px 26px 26px 46px;
+    clip-path: polygon(
+      0% 1.2%, 3% 0%, 9% 0.8%, 16% 0%, 24% 0.6%, 33% 0%, 42% 0.9%, 51% 0%, 60% 0.7%,
+      69% 0%, 78% 0.8%, 87% 0%, 94% 0.6%, 100% 0%,
+      100% 99%, 93% 100%, 85% 99.3%, 76% 100%, 67% 99.4%, 58% 100%, 49% 99.2%, 40% 100%,
+      31% 99.5%, 22% 100%, 13% 99.3%, 6% 100%, 0% 99%
+    );
+  }
+  .punch-holes{
+    position:absolute;
+    left:16px;
+    top:0;
+    bottom:0;
+    width:16px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-evenly;
+    align-items:center;
+    pointer-events:none;
+  }
+  .punch-holes span{
+    width:11px;height:11px;border-radius:50%;
+    background: var(--desk);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.25);
+  }
+  .margin-line{
+    position:absolute;
+    left:38px;
+    top:0;
+    bottom:0;
+    width:1.5px;
+    background: var(--margin-red);
+    opacity:0.55;
+  }
+  header{
+    text-align:center;
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:'Caveat', cursive;
+    font-weight:700;
+    font-size:2.6rem;
+    margin:0;
+    transform: rotate(-1.2deg);
+    color: var(--ink-o);
+    letter-spacing: 0.5px;
+  }
+  .subtitle{
+    font-size:1rem;
+    color:#6b6b63;
+    margin-top:-4px;
+  }
+  .status{
+    text-align:center;
+    font-size:1.25rem;
+    min-height:1.6em;
+    margin: 10px 0 4px;
+  }
+  .status .pill{
+    display:inline-block;
+    padding: 2px 14px;
+    border-radius: 3px;
+    background: rgba(255,209,102,0.35);
+    transform: rotate(-0.5deg);
+  }
+  .board-wrap{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding: 4px 0 8px;
+  }
+  svg#board{
+    display:block;
+    width:100%;
+    height:auto;
+    touch-action:manipulation;
+  }
+  .cell-hit{ fill:transparent; cursor:pointer; }
+  .cell-hit:hover{ fill: rgba(29,53,87,0.05); }
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 18px;
+    align-items:center;
+    justify-content:center;
+    margin-top:10px;
+    font-size:1.05rem;
+  }
+  .controls label{ display:flex; align-items:center; gap:5px; cursor:pointer; }
+  select{
+    font-family:'Patrick Hand', sans-serif;
+    font-size:1rem;
+    border: 1.5px solid var(--ink-o);
+    background: var(--paper);
+    border-radius: 4px;
+    padding: 3px 6px;
+    color: var(--text);
+  }
+  button#newgame{
+    font-family:'Patrick Hand', sans-serif;
+    font-size:1.1rem;
+    background: var(--ink-x);
+    color:#fdf6f0;
+    border:none;
+    padding:7px 18px;
+    border-radius:5px;
+    cursor:pointer;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    transform: rotate(-0.4deg);
+  }
+  button#newgame:active{ transform: translateY(1px) rotate(-0.4deg); box-shadow:none; }
+  .legend{
+    display:flex;
+    justify-content:center;
+    gap:22px;
+    margin-top:8px;
+    font-size:0.95rem;
+    color:#6b6b63;
+  }
+  .legend span.mark{ font-weight:bold; }
+  .legend .o{ color:var(--ink-o); }
+  .legend .x{ color:var(--ink-x); }
+  @media (max-width:420px){
+    h1{font-size:2.1rem;}
+    .paper{padding:24px 16px 20px 38px;}
+  }
+</style>
+</head>
+<body>
+<div class="desk-scene">
+  <div class="paper">
+    <div class="margin-line"></div>
+    <div class="punch-holes"><span></span><span></span><span></span></div>
+    <header>
+      <h1>Luffarschack</h1>
+      <div class="subtitle">fem i rad · rutat papper</div>
+    </header>
+    <div class="status" id="status"><span class="pill">Din tur — sätt en ring</span></div>
+    <div class="board-wrap" id="boardWrap">
+      <svg id="board" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="legend">
+      <div>Du: <span class="mark o">O</span></div>
+      <div>Claude: <span class="mark x">X</span></div>
+    </div>
+    <div class="controls">
+      <label>Vem börjar?
+        <select id="starter">
+          <option value="player" selected>Du</option>
+          <option value="ai">Claude</option>
+        </select>
+      </label>
+      <button id="newgame">Ny match</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const SIZE = 50;
+  const CELL = 24;
+  const MARGIN = 30;
+  const DIM = MARGIN + SIZE*CELL;
+  const EMPTY=0, PLAYER=1, AI=2;
+
+  const svg = document.getElementById('board');
+  const boardWrap = document.getElementById('boardWrap');
+  const statusEl = document.getElementById('status');
+  const starterSel = document.getElementById('starter');
+  const newGameBtn = document.getElementById('newgame');
+
+  let board, turn, gameOver, winLine, thinking;
+
+  function seededRand(seed){
+    let t = seed + 0x6D2B79F5;
+    return function(){
+      t += 0x6D2B79F5;
+      let x = Math.imul(t ^ (t >>> 15), 1 | t);
+      x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+      return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function colLabel(c){
+    let n = c+1, s = '';
+    while(n>0){
+      const rem = (n-1)%26;
+      s = String.fromCharCode(65+rem) + s;
+      n = Math.floor((n-1)/26);
+    }
+    return s;
+  }
+
+  function newGame(){
+    board = Array.from({length:SIZE}, () => Array(SIZE).fill(EMPTY));
+    gameOver = false;
+    winLine = null;
+    thinking = false;
+    turn = starterSel.value === 'player' ? PLAYER : AI;
+    render();
+    setStatus(turn===PLAYER ? 'Din tur — sätt en ring' : 'Claude börjar …');
+    if(turn === AI){
+      window.setTimeout(aiTurn, 500);
+    }
+  }
+
+  function setStatus(text, cls){
+    statusEl.innerHTML = '<span class="pill">'+text+'</span>';
+  }
+
+  function inBounds(r,c){ return r>=0 && r<SIZE && c>=0 && c<SIZE; }
+
+  const DIRS = [[0,1],[1,0],[1,1],[1,-1]];
+
+  function checkWinAt(b, r, c, player){
+    for(const [dr,dc] of DIRS){
+      let cells = [[r,c]];
+      let rr=r+dr, cc=c+dc;
+      while(inBounds(rr,cc) && b[rr][cc]===player){ cells.push([rr,cc]); rr+=dr; cc+=dc; }
+      rr=r-dr; cc=c-dc;
+      while(inBounds(rr,cc) && b[rr][cc]===player){ cells.unshift([rr,cc]); rr-=dr; cc-=dc; }
+      if(cells.length>=5) return cells;
+    }
+    return null;
+  }
+
+  function isFull(b){
+    for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(b[r][c]===EMPTY) return false;
+    return true;
+  }
+
+  // --- heuristic evaluation for AI move selection ---
+  function patternScore(count, openEnds){
+    if(count>=5) return 1000000;
+    if(count===4) return openEnds>=1 ? (openEnds===2?100000:10000) : 0;
+    if(count===3) return openEnds===2?5000: (openEnds===1?200:0);
+    if(count===2) return openEnds===2?50: (openEnds===1?10:0);
+    if(count===1) return 1;
+    return 0;
+  }
+
+  function axisScore(b, r, c, player, dr, dc){
+    let count=1;
+    let rr=r+dr, cc=c+dc;
+    while(inBounds(rr,cc) && b[rr][cc]===player){ count++; rr+=dr; cc+=dc; }
+    const openA = inBounds(rr,cc) && b[rr][cc]===EMPTY;
+    rr=r-dr; cc=c-dc;
+    while(inBounds(rr,cc) && b[rr][cc]===player){ count++; rr-=dr; cc-=dc; }
+    const openB = inBounds(rr,cc) && b[rr][cc]===EMPTY;
+    const openEnds = (openA?1:0)+(openB?1:0);
+    return patternScore(count, openEnds);
+  }
+
+  function totalScore(b, r, c, player){
+    let s=0;
+    for(const [dr,dc] of DIRS){ s += axisScore(b,r,c,player,dr,dc); }
+    return s;
+  }
+
+  function candidateCells(b){
+    const set = new Set();
+    let any=false;
+    for(let r=0;r<SIZE;r++){
+      for(let c=0;c<SIZE;c++){
+        if(b[r][c]!==EMPTY){
+          any=true;
+          for(let dr=-2;dr<=2;dr++){
+            for(let dc=-2;dc<=2;dc++){
+              const rr=r+dr, cc=c+dc;
+              if(inBounds(rr,cc) && b[rr][cc]===EMPTY) set.add(rr*SIZE+cc);
+            }
+          }
+        }
+      }
+    }
+    if(!any){
+      const mid = Math.floor(SIZE/2);
+      return [[mid,mid]];
+    }
+    return Array.from(set).map(v => [Math.floor(v/SIZE), v%SIZE]);
+  }
+
+  function bestAIMove(b){
+    const cands = candidateCells(b);
+    const mid = (SIZE-1)/2;
+    let best = [];
+    let bestVal = -Infinity;
+    for(const [r,c] of cands){
+      b[r][c] = AI;
+      const off = totalScore(b, r, c, AI);
+      b[r][c] = EMPTY;
+      b[r][c] = PLAYER;
+      const def = totalScore(b, r, c, PLAYER);
+      b[r][c] = EMPTY;
+      const centerBias = -0.05*(Math.abs(r-mid)+Math.abs(c-mid));
+      const val = off + def*0.9 + centerBias;
+      if(val > bestVal + 1e-9){ bestVal = val; best = [[r,c]]; }
+      else if(Math.abs(val-bestVal) <= 1e-9){ best.push([r,c]); }
+    }
+    const idx = Math.floor(Math.random()*best.length);
+    return best[idx];
+  }
+
+  function placeMark(r,c,player){
+    board[r][c] = player;
+    const line = checkWinAt(board, r, c, player);
+    render();
+    if(line){
+      gameOver = true;
+      winLine = line;
+      drawWinLine(line);
+      setStatus(player===PLAYER ? 'Du vann! 🎉' : 'Claude vann den här gången.');
+      return true;
+    }
+    if(isFull(board)){
+      gameOver = true;
+      setStatus('Oavgjort — brädet är fullt.');
+      return true;
+    }
+    return false;
+  }
+
+  function aiTurn(){
+    if(gameOver) return;
+    thinking = true;
+    setStatus('Claude tänker …');
+    window.setTimeout(function(){
+      const [r,c] = bestAIMove(board);
+      const finished = placeMark(r,c,AI);
+      thinking = false;
+      if(!finished){
+        turn = PLAYER;
+        setStatus('Din tur');
+      }
+    }, 420);
+  }
+
+  function onCellClick(r,c){
+    if(gameOver || thinking || turn!==PLAYER) return;
+    if(board[r][c]!==EMPTY) return;
+    const finished = placeMark(r,c,PLAYER);
+    if(!finished){
+      turn = AI;
+      window.setTimeout(aiTurn, 350);
+    }
+  }
+
+  // --- rendering ---
+  function el(name, attrs){
+    const e = document.createElementNS('http://www.w3.org/2000/svg', name);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function cellCenter(r,c){
+    return [MARGIN + c*CELL + CELL/2, MARGIN + r*CELL + CELL/2];
+  }
+
+  function drawStoneO(r,c){
+    const rand = seededRand(r*1000+c);
+    const [cx,cy] = cellCenter(r,c);
+    const rad = CELL*0.30 + (rand()-0.5)*1.5;
+    const rot = (rand()-0.5)*18;
+    const g = el('g', {transform:`rotate(${rot} ${cx} ${cy})`});
+    const path = `M ${cx-rad},${cy} A ${rad},${rad*0.94} 0 1 0 ${cx+rad},${cy} A ${rad},${rad*1.05} 0 1 0 ${cx-rad},${cy}`;
+    g.appendChild(el('path',{d:path, fill:'none', stroke:'var(--ink-o)', 'stroke-width':3.2, 'stroke-linecap':'round', opacity:0.9}));
+    return g;
+  }
+
+  function drawStoneX(r,c){
+    const rand = seededRand(r*2000+c+7);
+    const [cx,cy] = cellCenter(r,c);
+    const s = CELL*0.30;
+    const j = ()=> (rand()-0.5)*3;
+    const g = el('g', {});
+    const p1 = `M ${cx-s+j()},${cy-s+j()} Q ${cx+j()},${cy+j()} ${cx+s+j()},${cy+s+j()}`;
+    const p2 = `M ${cx+s+j()},${cy-s+j()} Q ${cx+j()},${cy+j()} ${cx-s+j()},${cy+s+j()}`;
+    g.appendChild(el('path',{d:p1, fill:'none', stroke:'var(--ink-x)', 'stroke-width':3.4, 'stroke-linecap':'round', opacity:0.9}));
+    g.appendChild(el('path',{d:p2, fill:'none', stroke:'var(--ink-x)', 'stroke-width':3.4, 'stroke-linecap':'round', opacity:0.9}));
+    return g;
+  }
+
+  function drawWinLine(line){
+    const [r1,c1] = line[0];
+    const [r2,c2] = line[line.length-1];
+    const [x1,y1] = cellCenter(r1,c1);
+    const [x2,y2] = cellCenter(r2,c2);
+    const p = el('path', {
+      d:`M ${x1},${y1} L ${x2},${y2}`,
+      stroke:'var(--highlight)', 'stroke-width':14, 'stroke-linecap':'round',
+      opacity:0.55
+    });
+    svg.insertBefore(p, svg.firstChild.nextSibling);
+  }
+
+  function render(){
+    svg.innerHTML='';
+    svg.setAttribute('viewBox', `0 0 ${DIM} ${DIM}`);
+    svg.setAttribute('width', DIM);
+    svg.setAttribute('height', DIM);
+
+    // background
+    svg.appendChild(el('rect',{x:0,y:0,width:DIM,height:DIM,fill:'transparent'}));
+
+    // grid lines
+    for(let i=0;i<=SIZE;i++){
+      const bold = (i % 5 === 0);
+      const pos = MARGIN + i*CELL;
+      svg.appendChild(el('line',{
+        x1:MARGIN, y1:pos, x2:MARGIN+SIZE*CELL, y2:pos,
+        stroke: bold?'var(--grid-bold)':'var(--grid)', 'stroke-width': bold?1.3:0.8
+      }));
+      svg.appendChild(el('line',{
+        x1:pos, y1:MARGIN, x2:pos, y2:MARGIN+SIZE*CELL,
+        stroke: bold?'var(--grid-bold)':'var(--grid)', 'stroke-width': bold?1.3:0.8
+      }));
+    }
+
+    // labels
+    for(let c=0;c<SIZE;c++){
+      const [cx] = cellCenter(0,c);
+      const t = el('text',{x:cx, y:MARGIN-9, 'text-anchor':'middle', 'font-size':11, fill:'#8a8a80', 'font-family':'Patrick Hand'});
+      t.textContent = colLabel(c);
+      svg.appendChild(t);
+    }
+    for(let r=0;r<SIZE;r++){
+      const [,cy] = cellCenter(r,0);
+      const t = el('text',{x:MARGIN-10, y:cy+4, 'text-anchor':'middle', 'font-size':11, fill:'#8a8a80', 'font-family':'Patrick Hand'});
+      t.textContent = (r+1);
+      svg.appendChild(t);
+    }
+
+    // stones
+    for(let r=0;r<SIZE;r++){
+      for(let c=0;c<SIZE;c++){
+        if(board[r][c]===PLAYER) svg.appendChild(drawStoneO(r,c));
+        else if(board[r][c]===AI) svg.appendChild(drawStoneX(r,c));
+      }
+    }
+
+    if(winLine) drawWinLine(winLine);
+
+    // click targets (drawn last, on top)
+    for(let r=0;r<SIZE;r++){
+      for(let c=0;c<SIZE;c++){
+        const hit = el('rect',{
+          x:MARGIN+c*CELL, y:MARGIN+r*CELL, width:CELL, height:CELL,
+          class:'cell-hit'
+        });
+        hit.addEventListener('click', () => onCellClick(r,c));
+        svg.appendChild(hit);
+      }
+    }
+  }
+
+  newGameBtn.addEventListener('click', newGame);
+  newGame();
+})();
+</script>
+</body>
+</html>
